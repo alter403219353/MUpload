@@ -6,11 +6,13 @@ $.fn.MUpload  = function(options){
 
     var data_type = options.data_type; //返回数据类型
 
-    var is_html5 = (typeof(Worker) !== "undefined") ?true:false;      //是否支持html5
+   var is_html5 = (typeof(Worker) !== "undefined") ?true:false;      //是否支持html5
 
     var if_time = 0;                   //表单提交iframe时间
 
-    var that = $(this);                    
+    var that = this; 
+
+    var $form = null;                   
 
     /**
      * 创建上传表单
@@ -19,7 +21,7 @@ $.fn.MUpload  = function(options){
 
         if (is_html5) {
 
-            var $form = $('<form class="MUpload" style="display: none" enctype="multipart/form-data">' +
+             $form = $('<form class="MUpload" style="display: none" enctype="multipart/form-data">' +
                 '<input type="file" style="display: none" name="' + file_name + '" id="' + file_name + '">' +
                 '</form>');
 
@@ -27,7 +29,7 @@ $.fn.MUpload  = function(options){
 
         }else{
 
-            var $form = $('<iframe class="MIframe" name="MIframe" id="MIframe"  frameborder=0 width=0 height=0></iframe><form class="MUpload" target="MIframe" style="display: none"  method="post" action='+upload_url+' enctype="multipart/form-data">' +
+             $form = $('<iframe class="MIframe" name="MIframe" id="MIframe"  frameborder=0 width=0 height=0></iframe><form class="MUpload" target="MIframe" style="display: none"  method="post" action='+upload_url+' enctype="multipart/form-data">' +
                 '<input type="file" style="display: none" name="' + file_name + '" id="' + file_name + '">' +
                 '<input type="submit" id="MUpload_submit">' +
                 '</form>');
@@ -47,17 +49,20 @@ $.fn.MUpload  = function(options){
      */
     this.on('click',function () {
 
-        $(document).find("#"+file_name).click();
+       $form.find("#"+file_name).click();
 
     });
 
    /**
      *图片控件上传事件
      */
-    $(document).on('change','#'+file_name,function () {
+    $form.on('change','#'+file_name,function(){
+            
+     if($(this).val() == ''){
+                return that.errormsg(-2);
+     } 
 
-
-        if(is_html5){
+     if(is_html5){
 
             var formData = new FormData($(document).find(".MUpload")[0]);
 
@@ -71,20 +76,19 @@ $.fn.MUpload  = function(options){
                 contentType: false
             }).done(function(data) {
                 
-                  options.success(data);
- 
-            }).fail(function(res) {
+                 options.success(data);
 
+            }).fail(function(res) {
                     that.errormsg();
             });
 
         }else{
 
-            $('.MUpload').submit();
+             $('.MUpload').submit();
 
-            if_time = 0;
+             if_time = 0;
 
-            var timeSet = setInterval(function(){
+             var timeSet = setInterval(function(){
 
                     if_time++ ;
 
@@ -94,33 +98,40 @@ $.fn.MUpload  = function(options){
 
                     if(html != '' && if_time<5){
 
+                           try { 
 
-                            if(data_type == 'text'){
+                                    if(data_type == 'text'){
 
-                                    options.success(html);
+                                          options.success(html);
 
-                            }else if(data_type == 'json'){
+                                    }else if(data_type == 'json'){
 
-                                var reg = /<pre.+?>(.+)<\/pre>/g;  
+                                        var reg = /<pre.+?>(.+)<\/pre>/g;  
 
-                                var result = html.match(reg);  
+                                        var result = html.match(reg);  
 
-                                html = RegExp.$1;
+                                        html = RegExp.$1;
 
-                                var data = JSON.parse(html);
+                                        var data = JSON.parse(html);
 
-                               options.success(data);
+                                        options.success(data);
 
-                            }
+                                    }
 
-                            clearInterval(timeSet);
+                                    clearInterval(timeSet);
 
-                            return false;
+                           　} catch(error) {
+
+                                       clearInterval(timeSet);
+
+                                       return that.errormsg(-3);
+                               } 
+
                     }else{
 
                          clearInterval(timeSet);
 
-                         that.errormsg();
+                         return that.errormsg();
                     }
 
             },1000);
@@ -132,15 +143,24 @@ $.fn.MUpload  = function(options){
     /**
      *上传失败消息
      */
-    this.errormsg = function(){
+    this.errormsg = function(errorno=-1){
 
-            var obj = new Object();
+            var errormsg_arr = new Array();
 
-            obj.errorno = -1;
 
-            obj.errormsg = "上传失败";
+            errormsg_arr[-1] ={
+                    errormsg:'上传失败',
+            };
 
-            options.error(obj);
+            errormsg_arr[-2] ={
+                    errormsg:'上传文件没有选择',
+            };
+
+             errormsg_arr[-3] ={
+                    errormsg:'返回数据格式不正确',
+            };
+
+            options.error( errormsg_arr[errorno]);
 
     }
 
