@@ -103,7 +103,7 @@ $.fn.MUpload  = function(options){
 
      if(is_html5){
 
-            var formData = new FormData($form);
+            var formData = new FormData($form[0]);
 
             $.ajax({
                 url: upload_url,
