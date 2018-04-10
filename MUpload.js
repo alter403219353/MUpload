@@ -1,4 +1,4 @@
- = function(options){
+$.fn.MUpload  = function(options){
 
     var element   = (typeof(options.element) !== "undefined")?options.element:'';  //留空则直接绑定不是动态创建的元素
 
