@@ -1,4 +1,6 @@
-$.fn.MUpload  = function(options){
+ = function(options){
+
+    var element   = (typeof(options.element) !== "undefined")?options.element:'';  //留空则直接绑定不是动态创建的元素
 
     var file_name = options.file_name;  //文件控件名称
 
@@ -6,7 +8,7 @@ $.fn.MUpload  = function(options){
 
     var data_type = options.data_type; //返回数据类型
 
-   var is_html5 = (typeof(Worker) !== "undefined") ?true:false;      //是否支持html5
+    var is_html5 = (typeof(Worker) !== "undefined") ?true:false;      //是否支持html5
 
     var if_time = 0;                   //表单提交iframe时间
 
@@ -47,11 +49,48 @@ $.fn.MUpload  = function(options){
     /**
      *点击文件事件
      */
-    this.on('click',function () {
+    if(element == ""){
 
-       $form.find("#"+file_name).click();
+        if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))) {
 
-    });
+            this.on('tap',function () {
+
+                $form.find("#"+file_name).click();
+
+            });
+
+        }else{
+
+            this.on('click',function () {
+
+                $form.find("#"+file_name).click();
+
+            });
+
+        }
+
+    }else{
+
+        if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))) {
+
+            this.on('tap',element,function () {
+
+                $form.find("#"+file_name).click();
+
+            });
+
+        }else{
+
+            this.on('click',element,function () {
+
+                $form.find("#"+file_name).click();
+
+            });
+
+        }
+
+    }
+
 
    /**
      *图片控件上传事件
@@ -64,7 +103,7 @@ $.fn.MUpload  = function(options){
 
      if(is_html5){
 
-            var formData = new FormData($(document).find(".MUpload")[0]);
+            var formData = new FormData($form);
 
             $.ajax({
                 url: upload_url,
@@ -84,7 +123,7 @@ $.fn.MUpload  = function(options){
 
         }else{
 
-             $('.MUpload').submit();
+             $form.submit();
 
              if_time = 0;
 
@@ -143,7 +182,7 @@ $.fn.MUpload  = function(options){
     /**
      *上传失败消息
      */
-    this.errormsg = function(errorno=-1){
+    this.errormsg = function(errorno){
 
             var errormsg_arr = new Array();
 
